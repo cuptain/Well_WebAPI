@@ -1,0 +1,253 @@
+﻿@using WebApi_V1336.Models
+    <div id="searchBlock">
+        <p><b>Получение скважины по её идентификатору</b></p>
+        <label>ID: </label><input type="number" id="searchId" size="50" />
+        @*<label>ID Контроллера: </label><input type="number" id="searchControllerId" />
+        <label>Тип эксплуатации: </label>
+        <select size="1" id="searchOperationType">
+            <option value = ""></option>
+            <option>@Well.OperationTypeEnum.ЭЦН</option>
+            <option>@Well.OperationTypeEnum.ШГН</option>
+            <option>@Well.OperationTypeEnum.ГПШГН</option>
+            <option>@Well.OperationTypeEnum.ЭВН</option>
+        </select>*@
+        <button id="getWell">Получить</button>
+    </div>
+    <div id="tableBlock">
+        <p><b>Список скважин</b></p>
+    </div>
+<div id="editBlock">
+    <p><b>Редактирование скважины</b></p>
+    <table>
+        <tr><td><input type="hidden" id="editId" /></td><td></td></tr>
+        <tr><td><label>Название: </label></td><td><input type="text" id="editName"/></td></tr>
+        <tr><td><label>Группа: </label></td><td><input type="text" id="editGroup" /></td></tr>
+        <tr><td><label>Месторождение: </label></td><td><input type="text" id="editField" /></td></tr>
+        <tr><td><label>ЦДНГ: </label></td><td><input type="text" id="editFactory" /></td></tr>
+        <tr><td><label>ID контроллера: </label></td><td><input type="number" id="editControllerId" /></td></tr>
+        <tr>
+            <td><label>Тип эксплуатации: </label></td>
+            <td>
+                <select size="1" id="editOperationType">
+                    <option>@Well.OperationTypeEnum.ЭЦН</option>
+                    <option>@Well.OperationTypeEnum.ШГН</option>
+                    <option>@Well.OperationTypeEnum.ГПШГН</option>
+                    <option>@Well.OperationTypeEnum.ЭВН</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <button id="editWell">Сохранить</button>
+</div>
+<div id="createBlock">
+    <p><b>Создание скважины</b></p>
+    <table>
+        <tr><td><label>Название: </label></td><td><input type="text" id="addName"/></td></tr>
+        <tr><td><label>Группа: </label></td><td><input type="text" id="addGroup"/></td></tr>
+        <tr><td><label>Месторождение: </label></td><td><input type="text" id="addField"/></td></tr>
+        <tr><td><label>ЦДНГ: </label></td><td><input type="text" id="addFactory"/></td></tr>
+        <tr><td><label>ID контроллера: </label></td><td><input type="number" id="addControllerId"/></td></tr>
+        <tr>
+            <td><label>Тип эксплуатации: </label></td>
+            <td>
+                <select size="1" id="addOperationType">
+                    <option value=""></option>
+                    <option>@Well.OperationTypeEnum.ЭЦН</option>
+                    <option>@Well.OperationTypeEnum.ШГН</option>
+                    <option>@Well.OperationTypeEnum.ГПШГН</option>
+                    <option>@Well.OperationTypeEnum.ЭВН</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <button id="addWell">Добавить</button>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            GetAllWells();
+
+            $("#editWell").click(function (event) {
+                event.preventDefault();
+                EditWell();
+            });
+
+            $("#addWell").click(function (event) {
+                event.preventDefault();
+                AddWell();
+            });
+
+            $("#getWell").click(function (event) {
+                event.preventDefault();
+                FindWell();
+            });
+
+        });
+
+
+        function GetAllWells() {
+
+            $("#createBlock").css('display', 'block');
+            $("#editBlock").css('display', 'none');
+            $.ajax({
+                url: '/api/wells',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    WriteResponse(data);
+                },
+                error: function (x, y, z) {
+                    alert('Возникла ошибка\n' + x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+        function FindWell() {
+            var id = $('#searchId').val();
+            $.ajax({
+                url: '/api/wells/' + id,
+                type: 'GET',
+                dataType: 'json',
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    WriteResult(data);
+                },
+                error: function (x, y, z) {
+                    alert('Возникла ошибка\n' + x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+        function AddWell() {
+            var well = {
+                Name: $('#addName').val(),
+                Group: $('#addGroup').val(),
+                Field: $('#addField').val(),
+                Factory: $('#addFactory').val(),
+                ControllerId: $('#addControllerId').val(),
+                OperationType: $('#addOperationType').val()
+            };
+
+            $.ajax({
+                url: '/api/wells/',
+                type: 'POST',
+                data: JSON.stringify(well),
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllWells();
+                },
+                error: function (x, y, z) {
+                    alert('Возникла ошибка\nHttpStatusCode = ' + z + '\nСкорее всего заполнены не все поля');
+                }
+            });
+        }
+
+        function DeleteWell(id) {
+
+            $.ajax({
+                url: '/api/wells/' + id,
+                type: 'DELETE',
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllWells();
+                },
+                error: function (x, y, z) {
+                    alert('Возникла ошибка\n' + x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+
+        function EditWell() {
+            var id = $('#editId').val()
+            var well = {
+                Id: $('#editId').val(),
+                Name: $('#editName').val(),
+                Group: $('#editGroup').val(),
+                Field: $('#editField').val(),
+                Factory: $('#editFactory').val(),
+                ControllerId: $('#editControllerId').val(),
+                OperationType: $('#editOperationType').val()
+            };
+            $.ajax({
+                url: '/api/wells/' + id,
+                type: 'PUT',
+                data: JSON.stringify(well),
+                contentType: "application/json;charset=utf-8",
+                success: function (data) {
+                    GetAllWells();
+                },
+                error: function (x, y, z) {
+                    alert('Возникла ошибка\nHttpStatusCode = ' + z + '\nСкорее всего заполнены не все поля');
+                }
+            });
+        }
+
+        function WriteResponse(wells) {
+            var strResult = "<table width=\"700\"><th>ID</th><th>Название</th><th>Куст</th><th>Месторождение</th><th>ЦДНГ</th><th>ID контроллера</th><th>Тип эксплуатации</th>";
+            $.each(wells, function (index, well) {
+                strResult += "<tr><td>" + well.Id + "</td><td> " + well.Name + "</td><td>" +
+                    well.Group + "</td><td>" + well.Field + "</td><td>" + well.Factory + "</td><td>" + well.ControllerId + "</td><td>" + well.OperationType +
+                    "</td><td><a id='editItem' data-item='" + well.Id + "' onclick='EditItem(this);' >Редактировать</a></td>" +
+                    "<td><a id='delItem' data-item='" + well.Id + "' onclick='DeleteItem(this);' >Удалить</a></td></tr>";
+            });
+            strResult += "</table>";
+            $("#tableBlock").html(strResult);
+
+        }
+
+        function WriteResult(well) {
+            var strResult = "<table width=\"700\"><th>ID</th><th>Название</th><th>Куст</th><th>Месторождение</th><th>ЦДНГ</th><th>ID контроллера</th><th>Тип эксплуатации</th>"
+                    + "<tr><td>" + well.Id + "</td><td> " + well.Name + "</td><td>" +
+                    well.Group + "</td><td>" + well.Field + "</td><td>" + well.Factory + "</td><td>" + well.ControllerId + "</td><td>" + well.OperationType +
+                    "</td><td><a id='editItem' data-item='" + well.Id + "' onclick='EditItem(this);' >Редактировать</a></td>" +
+                    "<td><a id='delItem' data-item='" + well.Id + "' onclick='DeleteItem(this);' >Удалить</a></td></tr>";
+            strResult += "</table>";
+            $("#tableBlock").html(strResult);
+
+        }
+
+        function DeleteItem(el) {
+            var id = $(el).attr('data-item');
+            DeleteWell(id);
+        }
+
+        function EditItem(el) {
+            var id = $(el).attr('data-item');
+            GetWell(id);
+        }
+
+        function ShowWell(well) {
+            if (well != null) {
+                $("#createBlock").css('display', 'none');
+                $("#editBlock").css('display', 'block');
+                $("#editId").val(well.Id);
+                $("#editName").val(well.Name);
+                $("#editGroup").val(well.Group);
+                $("#editField").val(well.Field);
+                $("#editFactory").val(well.Factory);
+                $("#editControllerId").val(well.ControllerId);
+                $("#editOperationType").val(well.OperationType);
+            }
+            else {
+                alert("Такой скважины не существует");
+            }
+        }
+
+        function GetWell(id) {
+            $.ajax({
+                url: '/api/wells/' + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    ShowWell(data);
+                },
+                error: function (x, y, z) {
+                    alert(x + '\n' + y + '\n' + z);
+                }
+            });
+        }
+    </script>
+}
